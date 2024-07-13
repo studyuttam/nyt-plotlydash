@@ -7,9 +7,10 @@ import pandas as pd
 import plotly.graph_objs as go
 
 
-df = pd.read_excel('Practice/NYT/Data/disabilitycensus2021_cleaned.xlsx')
+df = pd.read_excel('Data/disabilitycensus2021_cleaned.xlsx')
 
 app = dash.Dash( external_stylesheets=[dbc.themes.BOOTSTRAP])
+server = app.server
 
 app.layout = html.Div([
     html.Div("NYT Dashboard", style={'fontSize': 50, 'textAlign': 'center', 'color': 'white', 'backgroundColor': 'Green'}),
