@@ -5,9 +5,31 @@ import dash_bootstrap_components as dbc
 import plotly.express as px
 import pandas as pd
 import plotly.graph_objs as go
+from dash import dash_table
 
 
 df = pd.read_excel('Data/disabilitycensus2021_cleaned.xlsx')
+
+#Summarized data
+df_summ = pd.read_excel('Data/summarised_population.xlsx')
+df_summ['Percentage'] = df_summ['Percentage'].round(2)
+
+# Calculate the average percentage for each age group
+average_percentage_by_age_group = df_summ.groupby('Age')['Percentage'].mean().reset_index()
+
+# Initialize an empty list for conditional styles
+style_data_conditional = []
+
+# Generate conditional styles for each age group
+for index, row in average_percentage_by_age_group.iterrows():
+    style_data_conditional.append({
+        'if': {
+            'filter_query': '{{Age}} = "{}" && {{Percentage}} > {}'.format(row['Age'], row['Percentage']),
+            'column_id': 'Percentage'
+        },
+        'backgroundColor': 'tomato',
+        'color': 'white'
+    }),
 
 app = dash.Dash( external_stylesheets=[dbc.themes.BOOTSTRAP])
 server = app.server
@@ -82,7 +104,18 @@ html.Div([
             html.Div(style={'height': '50px'})
         ], width=6),  # Adjust 'width' as needed to size the pie chart column
         dbc.Col([  # Second column for another chart
-            dcc.Graph(id='Place_holder')  # Placeholder ID, replace with actual
+            dash_table.DataTable(
+                id='datatable-agegroup',
+    style_data_conditional=style_data_conditional,
+    sort_action='native',
+    style_data={
+        'color': 'black',
+        'whiteSpace': 'normal',
+        'height': 'auto',
+    },
+    columns=[{"name": i, "id": i} for i in df_summ.columns],
+    page_size=10)
+
         ], width=6),  # Adjust 'width' as needed
     ], style={"display": "flex", "justify-content": "center"}),  # Adjust styling as needed
     # Other components can follow here
@@ -257,10 +290,11 @@ def update_population_bar_chart(selected_la, selected_ag):
     return figure
 
 @app.callback(
-    Output('agegroup-scatter-plot', 'figure'),
+    [Output('agegroup-scatter-plot', 'figure'),
+     Output('datatable-agegroup', 'data')],
     [Input('ag-choice', 'value')]
 )
-def update_scatter_plot(selected_ag):
+def update_scatter_and_datatable(selected_ag):
     # Filter the DataFrame for the selected age group
     filtered_df = df[(df['Age'].isin(selected_ag))
                      & (df['Sex'].isin(['Male', 'Female']))
@@ -289,8 +323,10 @@ def update_scatter_plot(selected_ag):
             'plot_bgcolor': 'lightgrey'
         }
     }
+
+    data = df_summ[df_summ['Age'].isin(selected_ag)].to_dict('records')
     
-    return fig
+    return fig, data
 
 
 
