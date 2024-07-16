@@ -292,14 +292,16 @@ def update_population_bar_chart(selected_la, selected_ag):
 @app.callback(
     [Output('agegroup-scatter-plot', 'figure'),
      Output('datatable-agegroup', 'data')],
-    [Input('ag-choice', 'value')]
+    [Input('la-choice', 'value'),
+        Input('ag-choice', 'value')]
 )
-def update_scatter_and_datatable(selected_ag):
+def update_scatter_and_datatable(selected_la, selected_ag):
     # Filter the DataFrame for the selected age group
     filtered_df = df[(df['Age'].isin(selected_ag))
                      & (df['Sex'].isin(['Male', 'Female']))
                      & (df['Disability Status'].isin(['Disabled; limited a lot']))]
     
+    selected_borough = selected_la
     # Group by 'Local Authority' and sum the populations and the disabled count
     grouped_df = filtered_df.groupby('Local Authority', as_index=False).agg({'Population': 'sum', 'Count': 'sum'})
     
@@ -311,7 +313,10 @@ def update_scatter_and_datatable(selected_ag):
             'type': 'scatter',
             'mode': 'markers',
             # Adjust marker size based on the 'Count' column, possibly scaled for better visualization
-            'marker': {'size': grouped_df['Count'] / grouped_df['Count'].max() * 50}  # Example scaling
+            'marker': {'size': grouped_df['Count'] / grouped_df['Count'].max() * 50,
+                       'color': ['red' if la in selected_la else 'blue' for la in grouped_df['Local Authority']]
+                       }  # Example scaling
+            
         }],
         'layout': {
             'title': 'Population vs. Disabled Population Count by Local Authority',
