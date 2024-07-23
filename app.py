@@ -98,16 +98,19 @@ html.Div([
     # Other components can follow here
 ]),
 html.Div([
-    dbc.Row([  # This Row wraps all three charts
+    dbc.Row([  
         dbc.Col([  # First column for the pie chart
             dcc.Graph(id='agegroup-scatter-plot', style={'height': '500px'}),
             html.Div(style={'height': '50px'})
         ], width=6),  # Adjust 'width' as needed to size the pie chart column
-        dbc.Col([  # Second column for another chart
+        dbc.Col([  # Second column for Data Table
+            html.H3('Data Table for Disabled Population by Age Group', style={'textAlign': 'center'}),
             dash_table.DataTable(
                 id='datatable-agegroup',
     style_data_conditional=style_data_conditional,
     sort_action='native',
+    filter_action="native",
+    filter_options={"placeholder_text": "Filter column..."},
     style_data={
         'color': 'black',
         'whiteSpace': 'normal',
